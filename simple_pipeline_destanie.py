@@ -47,15 +47,34 @@ eda_no_stress, hr_no_stress = not_stressed_data_from_all_files(data_folder=senso
 
 print(f'Stress segments: {len(eda_stress1)} and Non-stressed segments: {len(eda_no_stress)}')
 
-# TO DO!!!:
 
-# ADD THE FEATURE ECXTRACTION HERE
+def extract_features(eda_segments, hr_segments):
+    eda_features = [ extract_eda_features(pd.Series(e), window_size=len(e))
+                    for e in eda_segments]
+    hrv_features = [ extract_hrv_features(pd.Series(h), window_size=len(h))
+                    for h in hr_segments]
+    return [pd.concat([e,h], axis=1) for e, h in zip(eda_features, hrv_features )]
+
+stress_features = extract_features(eda_stress1, hr_stress1)
+not_stressed_features = extract_features(eda_no_stress, hr_no_stress)
+stress_df = pf.concat(stress_features).rest_index(drop=True)
+not_stressed_df = extract_features(eda_no_stress, hr_no_stress)
+
+stress_df['label'] = 1
+not_stressed_df['label'] = 0
+features_df = pd.concat([stress_df, not_stressed_df]).reset_index(drop=True)
+print(f'Total feature samples:{features_df.shape[0]}')
 
 
+x = features_df.drop("label", axis=1)
+y = features_df["label"]
 
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=.2, random_state=22)
+classifcation = RandomForestClassifier(random_state=22)
+classifcation.fit(x_train, y_train)
+y_prediction = classifcation.predict(x_test)
 
-# TRAIN THE CRAVING PREDICTION MODEL
+print(classification_report(y_test, y_prediction))
 
-# PRINT CLASSICATION REPORTS, CONFUSION MATRIX, OTHER VISUALS ETC
 
 # GO BACK AND ADD EVERYTHING ELSE
