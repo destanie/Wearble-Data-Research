@@ -12,6 +12,7 @@ Sources:
 + Personal Research Rescources
  + Class notes and resources from STAT 4000, STAT 6000, STAT 6210, and STAT 6650
  + [pylance](https://github.com/microsoft/pylance-release/tree/main)
+ + github copilot
  + Hastie, Trevor, et al. “The Elements of Statistical Learning.” Springer series in statistics, 2009, https://doi.org/10.1007/978-0-387-84858-7.
  + [ADARP Dataset Github](https://github.com/rameshKrSah/ADARP_Dataset)
  + [A First Encounter with Machine Learning](https://github.com/tpn/pdfs/blob/master/A%20First%20Encounter%20with%20Machine%20Learning%20-%202011%20(IntroMLBook).pdf)
