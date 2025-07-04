@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from data_loader import load_senor_file
+from data_loader import load_sensor_file
 from data_proc_adarp import align_sensor_data, get_eda_data_around_tags, get_tag_timestamps, get_hr_data_around_tags, not_stressed_data_from_all_files
 from filters import smooth_signal
 from preprocessing import extract_eda_features, extract_hrv_features
@@ -12,6 +12,8 @@ from stress_models import train_model
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+
 
 sensor_data1 = "/Users/austudent/Desktop/adarp_project/Part 101C/Sensor Data Day 1 csv files"
 
@@ -21,8 +23,8 @@ sensor_data1 = "/Users/austudent/Desktop/adarp_project/Part 101C/Sensor Data Day
 eda_data1 = os.path.join(sensor_data1, "EDA.csv")
 hr_data1 = os.path.join(sensor_data1, "HR.csv")
 tag_data1 = os.path.join(sensor_data1, "tags.csv")
-eda_df = load_senor_file(eda_data1)
-hr_df = load_senor_file(hr_data1)
+eda_df = load_sensor_file(eda_data1)
+hr_df = load_sensor_file(hr_data1)
 eda_df = align_sensor_data(eda_df, sampling_rate=4)
 hr_df = align_sensor_data(hr_df, sampling_rate=1)
 eda_df["EDA_Smooth"] = smooth_signal(eda_df['EDA'])
@@ -57,8 +59,8 @@ def extract_features(eda_segments, hr_segments):
 
 stress_features = extract_features(eda_stress1, hr_stress1)
 not_stressed_features = extract_features(eda_no_stress, hr_no_stress)
-stress_df = pf.concat(stress_features).rest_index(drop=True)
-not_stressed_df = extract_features(eda_no_stress, hr_no_stress)
+stress_df = pd.concat(stress_features).reset_index(drop=True)
+not_stressed_df = pd.concat(not_stressed_features).reset_index(drop=True)
 
 stress_df['label'] = 1
 not_stressed_df['label'] = 0
@@ -70,11 +72,14 @@ x = features_df.drop("label", axis=1)
 y = features_df["label"]
 
 x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=.2, random_state=22)
-classifcation = RandomForestClassifier(random_state=22)
-classifcation.fit(x_train, y_train)
-y_prediction = classifcation.predict(x_test)
+classification = RandomForestClassifier(random_state=22)
+classification.fit(x_train, y_train)
+y_prediction = classification.predict(x_test)
 
 print(classification_report(y_test, y_prediction))
 
 
 # GO BACK AND ADD EVERYTHING ELSE
+
+confusion_matrix = confusion_matrix(y_test, y_prediction)
+print(confusion_matrix)
