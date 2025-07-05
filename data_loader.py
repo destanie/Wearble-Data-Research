@@ -1,6 +1,6 @@
-
 import numpy as np
 import sys
+import pandas as pd
 
 import utils as utl
 
@@ -129,4 +129,8 @@ def combine_class_data(baseline_path, amusement_path, stressed_path, include_amu
         Y = np.concatenate([Y, np.zeros(amusement_segments.shape[0], dtype=int)])
     
     return X, Y
-    
+
+def load_sensor_file(filepath):
+    """Load a sensor CSV file and return as a pandas DataFrame."""
+    return pd.read_csv(filepath)
+
