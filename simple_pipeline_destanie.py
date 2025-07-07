@@ -5,20 +5,36 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from data_loader import load_sensor_file
-from data_proc_adarp import align_sensor_data, get_eda_data_around_tags, get_tag_timestamps, get_hr_data_around_tags, not_stressed_data_from_all_files, get_temp_data_around_tags, get_bvp_data_around_tags, get_acc_data_around_tags
-from filters import smooth_signal
+from data_proc_adarp import get_eda_data_around_tags, get_tag_timestamps, get_hr_data_around_tags, not_stressed_data_from_all_files, get_temp_data_around_tags, get_bvp_data_around_tags, get_acc_data_around_tags
 from preprocessing import extract_eda_features, extract_hrv_features, extract_temp_features, extract_acc_features, extract_bvp_features
 from stress_models import train_model
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
+def align_sensor_data(df, sampling_rate):
+    """
+    Adds a 'Time' column to sensor data using sampling rate.
+    Assumes the first value in the dataframe is the start time (in UNIX timestamp).
+    """
+    start_time = df.iloc[0, 0]
+    values = df.iloc[2:].reset_index(drop=True).astype(float)  # skip first 2 rows (meta)
+    time_index = np.arange(0, len(values)) / sampling_rate
+    df_aligned = pd.DataFrame(values)
+    df_aligned['Time'] = start_time + time_index
+    return df_aligned
+
+def smooth_signal(signal_series, window_size=5):
+    """
+    Applies a simple rolling average to smooth the signal.
+    """
+    return signal_series.rolling(window=window_size, min_periods=1, center=True).mean()
+
 
 
 sensor_data1 = "/Users/austudent/Desktop/adarp_project/Part 101C/Sensor Data Day 1 csv files"
 
-# starting small with eda and hr first so i don't get confused.
-# will obvi add temp, acc, etc. once eda and hr work
+#
  
 eda_data1 = os.path.join(sensor_data1, "EDA.csv")
 hr_data1 = os.path.join(sensor_data1, "HR.csv")
@@ -32,6 +48,7 @@ eda_df = align_sensor_data(eda_df, sampling_rate=4)
 hr_df = align_sensor_data(hr_df, sampling_rate=1)
 eda_df["EDA_Smooth"] = smooth_signal(eda_df['EDA'])
 
+print(eda_df.head(10))
 # tag times / time stamps
 
 tag_times1 = get_tag_timestamps(tag_data1)
@@ -88,8 +105,13 @@ features_df = pd.concat([stress_df, not_stressed_df]).reset_index(drop=True)
 print(f'Total feature samples:{features_df.shape[0]}')
 
 
+
 x = features_df.drop("label", axis=1)
 y = features_df["label"]
+
+print("Stress features shape:", stress_df.shape)
+print("No-stress features shape:", not_stressed_df.shape)
+print("Feature columns:", x.columns.tolist())
 
 x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=.2, random_state=22)
 classification = RandomForestClassifier(random_state=22)
@@ -99,7 +121,8 @@ y_prediction = classification.predict(x_test)
 print(classification_report(y_test, y_prediction))
 
 
-# GO BACK AND ADD EVERYTHING ELSE
+#
 
 conf_matrix = confusion_matrix(y_test, y_prediction)
+
 print(conf_matrix)
